@@ -9,7 +9,7 @@ manager for your ideas
 Python 3.8
 
 ```bash
-$ git clone https://github.com/wretwe/Idea-manager.git
+$ git clone https://github.com/peach-lasagna/Idea-manager.git
 $ cd Idea-manager
 ```
 make venv in project:
