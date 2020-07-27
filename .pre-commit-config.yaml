@@ -1,0 +1,84 @@
+default_language_version:
+  python: python3.8
+
+default_stages: [commit, push]
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.1.0
+    hooks:
+      - id: check-yaml
+        exclude: ^Idea-manager/.github/
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: flake8
+
+  - repo: local
+    hooks:
+      - id: pyupgrade
+        name: pyupgrade
+        entry: poetry run pyupgrade --py38-plus
+        exclude: ^Idea-manager/
+        types: [python]
+        language: system
+
+  - repo: local
+    hooks:
+      - id: vulture
+        name: vulture
+        description: Find dead code
+        entry: vulture .
+        types: [python]
+        language: python
+
+      - id: isort
+        name: isort
+        description: Run isort on python files/directories
+        entry: isort
+        language: python
+        "types": [python]
+        args: []
+        additional_dependencies: []
+
+      - id: mypy
+        name: mypy
+        description: Type checking
+        entry: mypy .
+        language: python
+        types: [python]
+        additional_dependencies: []
+
+      - id: black
+        name: black
+        description: Run black formatter.
+        entry: black -t py38 -l 90 .
+        types: [python]
+        language: python
+
+      - id: pylama
+        name: pylama
+        description: Run pylama linter on python files/directories.
+        entry: pylama
+        language: python
+        types: [python]
+        additional_dependencies: []
+
+      - id: pydocstyle
+        name: PEP257
+        entry: pydocstyle --ignore=D100,D213,D407,D203,D406
+        language: python
+        files: \.py$
+
+      - id: autopep8
+        name: autopep8
+        description: autopep8 formatter
+        entry: autopep8 --in-place -r --max-line-length=90 .
+        types: [python]
+        language: python
+
+      - id: bandit
+        name: bandit
+        description: Python code vulnerabilities checker
+        language: python
+        types: [python]
+        entry: bandit -r .
