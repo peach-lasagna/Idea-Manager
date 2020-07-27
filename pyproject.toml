@@ -5,7 +5,7 @@ build-backend = "poetry.masonry.api"
 requires = ["poetry>=1.0"]
 
 [tool.poetry]
-authors = ["wretwe <kir.kud@inbox.ru>"]
+authors = ["peach lasagna <kir.kud@inbox.ru>"]
 description = "manager for your ideas"
 license = "Apache Software License 2.0"
 name = "Idea-manager"
