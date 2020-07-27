@@ -24,3 +24,9 @@ Install dependies:
 ```bash
 $ poetry install
 ```
+
+or
+
+```bash
+$ pip install requirements.txt
+```
