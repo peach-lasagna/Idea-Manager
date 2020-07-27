@@ -78,13 +78,11 @@ class View:
         click.clear()
         self_conroller.model.data = load_json(self_conroller.model.path)
         try:
-            self_conroller.model.max_ind = max(
-                map(int, self_conroller.model.data.keys()))
+            self_conroller.model.max_ind = max(map(int, self_conroller.model.data.keys()))
         except TypeError:
             logger.error("TypeError: {self_conroller.model.max_ind} str > int")
         except ValueError:
-            logger.error(
-                "ValueError: {self_conroller.model.max_ind} empty sequence")
+            logger.error("ValueError: {self_conroller.model.max_ind} empty sequence")
 
         for i, val in enumerate(self_conroller.model.data.values()):
             click.echo(click.style(f"[{i}] ", fg="red") + val)
