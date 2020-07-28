@@ -62,7 +62,7 @@ def comp_idea_list() -> None:
         click.echo("[ ] " + st)
 
 
-@cli.command(name="todo", help="Todo list")
+@cli.command(name="todo", help="Todo list [PRESS 'Ctrl' + 'H' for more info]")
 def todo() -> None:
     todo_main(env["todo_path"], env["todo_comp_path"])
 
