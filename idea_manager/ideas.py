@@ -18,22 +18,17 @@ def load_json(path: str) -> dict:
         return json.load(file)
 
 
-@dataclass
-class __DataIdeas:
-    """Dataclass to .json db"""
-
-    data_path: str
-    schema_path: str
-    completed_path: str
-
-    def __post_init__(self):
+class Ideas:
+    """Class to operations with db."""
+    
+    def __init__(self, data_path: str, schema_path: str, completed_path: str):
+        self.data_path = data_path
+        self.schema_path = schema_path
+        self.completed_path = completed_path
+        
         self.data: dict = load_json(self.data_path)
         self.schema: dict = load_json(self.schema_path)
         self.completed: dict = load_json(self.completed_path)
-
-
-class Ideas(__DataIdeas):
-    """Class to operations with db."""
 
     def read_idea(self, block: str, data: Optional[dict] = None) -> Iterator[str]:
         """Read db from json.
