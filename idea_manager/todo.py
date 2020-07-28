@@ -77,11 +77,13 @@ class View:
         click.clear()
         self_conroller.model.data = load_json(self_conroller.model.path)
         try:
-            self_conroller.model.max_ind = max(map(int, self_conroller.model.data.keys()))
+            self_conroller.model.max_ind = max(
+                map(int, self_conroller.model.data.keys()))
         except TypeError:
             logger.error("TypeError: {self_conroller.model.max_ind} str > int")
         except ValueError:
-            logger.error("ValueError: {self_conroller.model.max_ind} empty sequence")
+            logger.error(
+                "ValueError: {self_conroller.model.max_ind} empty sequence")
 
         for i, val in enumerate(self_conroller.model.data.values()):
             click.echo(click.style(f"[{i}] ", fg="red") + val)
@@ -148,6 +150,26 @@ class Controller:
         self.view.print_pause(self.model.count)
 
 
+def help_keys():
+    click.clear()
+    dic_keys: dict = {
+        "ctrl + r": "Reload window",
+        "ctrl + n": "New TODO",
+        "ctrl + b": "Count not completed TODO's",
+        "ctrl + d": "Delete TODO",
+        "ctrl + g": "Print info on input line",
+        "ctrl + x": "Complete TODO",
+        "ctrl + w": "Print completed TODO's",
+        "ctrl + h": "Help",
+        "ctrl + c": "Abort",
+        "esc": "Exit"
+    }
+    for key, do in dic_keys.items():
+        click.echo(f"{key}: {do}")
+    clear_input()
+    click.pause()
+
+
 def main(path: str, path_comp: str) -> None:
     controller = Controller(Model(path, path_comp), View())
     Controller.reload(controller)
@@ -159,6 +181,7 @@ def main(path: str, path_comp: str) -> None:
         "ctrl + g": controller.go_to_line,
         "ctrl + x": controller.complete,
         "ctrl + w": controller.read_comp,
+        "ctrl + h": help_keys
     }
     for key, func in dic.items():
         keyboard.add_hotkey(key, func)
