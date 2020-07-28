@@ -73,8 +73,7 @@ class Model:
 
 
 class View:
-    @staticmethod
-    def reload(self_conroller):
+    def reload(self, self_conroller):
         click.clear()
         self_conroller.model.data = load_json(self_conroller.model.path)
         try:
@@ -87,15 +86,13 @@ class View:
         for i, val in enumerate(self_conroller.model.data.values()):
             click.echo(click.style(f"[{i}] ", fg="red") + val)
 
-    @staticmethod
-    def print_pause(arg: Any):
+    def print_pause(self, arg: Any):
         click.clear()
         click.echo(arg)
         clear_input()
         click.pause()
 
-    @staticmethod
-    def print_lst(it):
+    def print_lst(self, it):
         click.clear()
         for st in it:
             click.echo(st)
