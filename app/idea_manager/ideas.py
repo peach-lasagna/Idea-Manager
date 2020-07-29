@@ -45,7 +45,7 @@ class IdeaModel:
             new_value = inp_func(f"{key}", val)
 
             if type(val) != str:
-                new_value = eval(new_value)
+                new_value = eval(str(new_value))
             self.schema[key] = new_value
         return self.schema
 
