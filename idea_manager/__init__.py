@@ -1,4 +1,4 @@
 from .todo import main as todo_main
-from .ideas import Ideas
+from .ideas import IdeaView, IdeaModel
 
-__all__ = ["Ideas", "todo_main"]
+__all__ = ["IdeaView", "IdeaModel", "todo_main"]
