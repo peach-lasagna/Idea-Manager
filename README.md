@@ -26,3 +26,14 @@ or
 ```bash
 $ pip install requirements.txt
 ```
+
+## Run
+With activate venv:
+```bash
+$ source .venv/Scripts/activate
+(.venv) $ py app
+```
+With poetry:
+```bash
+$ poetry run py app
+```
