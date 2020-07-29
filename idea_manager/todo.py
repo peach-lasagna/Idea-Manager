@@ -1,13 +1,11 @@
-import logging
 import datetime
-from json import dump
 from msvcrt import getch, kbhit
 from typing import Any, Final, Callable, Iterator
 
 import click
 import keyboard
 
-from .ideas import load_json
+from .ideas import load_json, export_to_json
 
 
 def clear_input():
@@ -16,7 +14,6 @@ def clear_input():
 
 
 NO_LINE_FILE: Final[str] = "No this line in file"
-logger = logging.getLogger(__name__)
 
 
 class Model:
@@ -28,25 +25,20 @@ class Model:
         self.data_comp: dict = load_json(self.path_comp)
         self.max_ind: int = -1
 
-    def export_to_json(self) -> None:
-        with open(self.path, "w", encoding="utf-8") as wri:
-            dump(self.data, wri, indent=2)
-
     def new(self, do: str) -> None:
         self.data.update({self.max_ind + 1: do})
-        self.export_to_json()
+        export_to_json(self.path, self.data)
 
     def delete(self, ind: int) -> str:
         if ind in self.data:
-            del_value = self.data[ind]
-            del self.data[ind]
+            del_value = self.data.pop(ind)
 
             values = self.data.values()
             self.data = {i: val for i, val in enumerate(values)}
 
             self.max_ind = len(values)
 
-            self.export_to_json()
+            export_to_json(self.path, self.data)
             return del_value
         return NO_LINE_FILE
 
@@ -61,8 +53,7 @@ class Model:
         if ind in self.data:
             time = datetime.datetime.now().strftime("%d-%m-%Y %H:%M")
             self.data_comp.update({time: self.data[ind]})
-            with open(self.path_comp, "w", encoding="utf-8") as wri:
-                dump(self.data_comp, wri, indent=2)
+            export_to_json(self.path_comp, self.data_comp)
             return self.delete(ind)
         return NO_LINE_FILE
 
@@ -80,13 +71,12 @@ class View:
             self_conroller.model.max_ind = max(
                 map(int, self_conroller.model.data.keys()))
         except TypeError:
-            logger.error("TypeError: {self_conroller.model.max_ind} str > int")
+            pass
         except ValueError:
-            logger.error(
-                "ValueError: {self_conroller.model.max_ind} empty sequence")
-
-        for i, val in enumerate(self_conroller.model.data.values()):
-            click.echo(click.style(f"[{i}] ", fg="red") + val)
+            click.echo("Empty! [Press 'Ctrl'+'N' to create new TODO]")
+        else:
+            for i, val in enumerate(self_conroller.model.data.values()):
+                click.echo(click.style(f"[{i}] ", fg="red") + val)
 
     def print_pause(self, arg: Any):
         click.clear()
