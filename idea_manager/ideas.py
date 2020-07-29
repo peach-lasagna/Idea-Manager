@@ -1,8 +1,14 @@
 import json
-from typing import Iterator, Optional
-from dataclasses import dataclass
+from typing import Callable, Iterator, Optional
 
 import click
+
+from .exceptions import NotFoundIdeaError
+
+
+def export_to_json(path: str, data: dict) -> None:
+    with open(path, "w", encoding="utf-8") as wri:
+        json.dump(data, wri, indent=2)
 
 
 def load_json(path: str) -> dict:
@@ -10,6 +16,7 @@ def load_json(path: str) -> dict:
 
     Args:
         path(str): path to json.
+
     Returns:
         (dict): db.
 
@@ -18,129 +25,112 @@ def load_json(path: str) -> dict:
         return json.load(file)
 
 
-class Ideas:
+class IdeaModel:
     """Class to operations with db."""
-    
+
     def __init__(self, data_path: str, schema_path: str, completed_path: str):
         self.data_path = data_path
         self.schema_path = schema_path
         self.completed_path = completed_path
-        
+
         self.data: dict = load_json(self.data_path)
         self.schema: dict = load_json(self.schema_path)
         self.completed: dict = load_json(self.completed_path)
 
-    def read_idea(self, block: str, data: Optional[dict] = None) -> Iterator[str]:
-        """Read db from json.
+    def export_data(self):
+        export_to_json(self.data_path, self.data)
 
-        Args:
-            block(str): idea name.
-            data(Optional[dict]): db to check in.
+    def input_data(self, inp_func: Callable = click.prompt) -> dict:
+        for key, val in self.schema.items():
+            new_value = inp_func(f"{key}", val)
 
-        Returns:
-            (Iterator[str]): str with key and value from db[block]
+            if type(val) != str:
+                new_value = eval(new_value)
+            self.schema[key] = new_value
+        return self.schema
 
-        """
+    def read_idea(self, name: str, data: Optional[dict] = None) -> Iterator[str]:
         if data is None:
             data = self.data
 
-        if block not in data:
-            click.echo("No this idea in list!")
-        else:
-            for key, val in data[block].items():
-                yield f"{key}: {val}"
+        if name not in data:
+            raise NotFoundIdeaError("No this idea in file!")
+
+        for key, val in data[name].items():
+            yield f"{key}: {val}"
 
     def list_idea(self, data: Optional[dict] = None) -> Iterator[str]:
-        """Read ideas from .json.
-
-        Args:
-            data(Optional[dict]): dict with ideas.
-
-        Returns:
-            (Iterator[str]): str with key and value from db[block]
-
-        """
         if data is None:
             data = self.data
 
         if not data:
-            click.echo("No ideas yet!")
+            raise NotFoundIdeaError("No ideas yet!")
 
         yield from data
 
-    def export_data(
-        self, path: Optional[str] = None, data: Optional[dict] = None
-    ) -> None:
-        """Export data to .json file.
-
-        Args:
-            path(Optional[str]): path to json file.
-            data(Optional[dict]): db to write.
-
-        """
-        if path is None:
-            path = self.data_path
-        if data is None:
-            data = self.data
-
-        with open(path, "w", encoding="utf-8") as wri:
-            json.dump(data, wri, indent=2)
-
-    def write_idea(self, name: str,) -> None:
-        """Update db in .json file.
-
-        Args:
-            name(str): name to idea.
-
-        """
-
-        def input_data() -> Optional[dict]:
-            """Input idea.
-
-            Returns:
-                (dict): completed db.
-
-            """
-            if name in self.data and not click.confirm(
-                "This idea already in list. Rewrite?"
-            ):
-                return
-
-            for key, val in self.schema.items():
-                new_value = click.prompt(f"{key}", val)
-                if new_value:
-                    if type(val) != str:
-                        new_value = eval(new_value)
-                    self.schema[key] = new_value
-            return self.schema
-
-        if inp := input_data():
-            self.data.update({name: inp})
+    def write_idea(self, name: str) -> None:
+        self.data.update({name: self.input_data()})
         self.export_data()
 
     def rem_idea(self, name: str) -> str:
-        """Remove idea from db.
-
-        Args:
-            name(str): name of idea.
-
-        Returns:
-            (str): Result of operation.
-
-        """
         if name in self.data:
             del self.data[name]
             self.export_data()
             return "Complete!"
-        else:
-            return "No this idea in list."
+        return "No this idea in list."
 
     def comp_idea(self, name: str) -> str:
-        if name not in self.data:
-            return "No this idea in list."
-        else:
+        if name in self.data:
             dic = self.data.pop(name)
             self.export_data()
+
             self.completed.update({name: dic})
-            self.export_data(self.completed_path, self.completed)
+            export_to_json(self.completed_path, self.completed)
             return "Complete!"
+        return "No this idea in list."
+
+
+def try_exc(foo: Callable, exc=NotFoundIdeaError):
+    def wrap(*args):
+        try:
+            foo(*args)
+        except exc as e:
+            click.echo(e.text)
+    return wrap
+
+
+class IdeaView:
+    def __init__(self, model: IdeaModel):
+        self.model = model
+
+    @try_exc
+    def read_idea(self, idea: str):
+        for st in self.model.read_idea(idea):
+            click.echo(st)
+
+    @try_exc
+    def list_idea(self):
+        for st in self.model.list_idea():
+            click.echo("[ ] " + st)
+
+    def rem_idea(self, idea: str):
+        click.echo(self.model.rem_idea(idea))
+
+    def comp_idea(self, idea: str) -> None:
+        click.echo(self.model.comp_idea(idea))
+
+    @try_exc
+    def read_comp_idea(self, idea: str):
+        for st in self.model.read_idea(idea, self.model.completed):
+            click.echo(st)
+
+    @try_exc
+    def comp_idea_list(self):
+        for st in self.model.list_idea(self.model.completed):
+            click.echo("[+] " + st)
+
+    def new_idea(self, idea: str):
+        if idea in self.model.data and not click.confirm(
+                "This idea already in list. Rewrite?"):
+            return
+        self.model.write_idea(idea)
