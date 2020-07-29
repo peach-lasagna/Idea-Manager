@@ -57,4 +57,4 @@ line-length = 90
 target-version = ["py38"]
 
 [tool.poetry.scripts]
-cli = "idea_manager.__main__:cli"
+cli = "app.__main__:cli"
