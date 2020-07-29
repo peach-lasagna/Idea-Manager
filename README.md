@@ -1,4 +1,4 @@
-# Idea-manager
+# Idea Manager
 
 ## Description
 
