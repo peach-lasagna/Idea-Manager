@@ -26,3 +26,7 @@ or
 ```bash
 $ pip install requirements.txt
 ```
+## Run
+```bash
+$ poetry run cli
+```
