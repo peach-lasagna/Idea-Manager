@@ -55,3 +55,6 @@ ignore = "D100"
 exclude = "(Idea-manager/|__pycache__|.eggs|.git|.hg|.mypy_cache|.nox|.tox|.venv|.svn|_build|buck-out|build|dist)"
 line-length = 90
 target-version = ["py38"]
+
+[tool.poetry.scripts]
+cli = "idea_manager.__main__:cli"
