@@ -5,7 +5,7 @@ from typing import Any, Final, Callable, Iterator
 import click
 import keyboard
 
-from .ideas import load_json, export_to_json
+from idea_manager.ideas import load_json, export_to_json
 
 
 def clear_input():
