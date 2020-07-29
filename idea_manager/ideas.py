@@ -3,7 +3,7 @@ from typing import Callable, Iterator, Optional
 
 import click
 
-from .exceptions import NotFoundIdeaError
+from idea_manager.exceptions import NotFoundIdeaError
 
 
 def export_to_json(path: str, data: dict) -> None:
