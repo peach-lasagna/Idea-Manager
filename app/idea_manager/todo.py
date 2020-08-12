@@ -1,17 +1,10 @@
 import datetime
-from msvcrt import getch, kbhit
-from typing import Any, Final, Callable, Iterator
+from random import choice
+from typing import Any, Dict, Final, Callable, Iterator
 
 import click
-import keyboard
 
-from idea_manager.ideas import load_json, export_to_json
-
-
-def clear_input():
-    while kbhit():
-        getch()
-
+from idea_manager.tools import load_json, add_hotkeys, clear_input, export_to_json
 
 NO_LINE_FILE: Final[str] = "No this line in file"
 
@@ -62,9 +55,13 @@ class Model:
         for time, val in self.data_comp.items():
             yield click.style(f"[{time}] ", fg="red") + val
 
+    @property
+    def random(self) -> Any:
+        return self.data[choice(list(self.data))]
 
-class View:
-    def reload(self, self_conroller):
+
+class View(BasicView):
+    def show(self, self_conroller):
         click.clear()
         self_conroller.model.data = load_json(self_conroller.model.path)
         try:
@@ -97,7 +94,7 @@ def update_view(foo: Callable):
         click.clear()
         clear_input()
         foo(*args)
-        Controller.reload(args[0])
+        Controller.show(args[0])
 
     return wrap
 
@@ -108,8 +105,8 @@ class Controller:
         self.view = view
 
     @staticmethod
-    def reload(self):
-        self.view.reload(self)
+    def show(self):
+        self.view.show(self)
 
     @update_view
     def complete(self):
@@ -139,40 +136,42 @@ class Controller:
     def count(self):
         self.view.print_pause(self.model.count)
 
+    @update_view
+    def random(self):
+        self.view.print_pause(self.model.random)
 
-def help_keys():
-    click.clear()
-    dic_keys: dict = {
-        "ctrl + r": "Reload window",
-        "ctrl + n": "New TODO",
-        "ctrl + b": "Count not completed TODO's",
-        "ctrl + d": "Delete TODO",
-        "ctrl + g": "Print info on input line",
-        "ctrl + x": "Complete TODO",
-        "ctrl + w": "Print completed TODO's",
-        "ctrl + h": "Help",
-        "ctrl + c": "Abort",
-        "esc": "Exit"
-    }
-    for key, do in dic_keys.items():
-        click.echo(f"{key}: {do}")
-    clear_input()
-    click.pause()
+
+# def help_keys():
+#     click.clear()
+#     dic_keys: dict = {
+#         "ctrl + r": "reload window",
+#         "ctrl + n": "New TODO",
+#         "ctrl + b": "Count not completed TODO's",
+#         "ctrl + d": "Delete TODO",
+#         "ctrl + g": "Print info on input line",
+#         "ctrl + x": "Complete TODO",
+#         "ctrl + w": "Print completed TODO's",
+#         "ctrl + h": "Help",
+#         "ctrl + c": "Abort",
+#         "esc": "Exit"
+#     }
+#     for key, do in dic_keys.items():
+#         click.echo(f"{key}:\t{do}")
+#     clear_input()
+#     click.pause()
 
 
 def main(path: str, path_comp: str) -> None:
     controller = Controller(Model(path, path_comp), View())
-    Controller.reload(controller)
-    dic = {
-        "ctrl + r": lambda: Controller.reload(controller),
+    Controller.show(controller)
+    dic: Dict[str, Callable] = {
+        "ctrl + s": lambda: Controller.show(controller),
         "ctrl + n": controller.new,
         "ctrl + b": controller.count,
         "ctrl + d": controller.delete,
         "ctrl + g": controller.go_to_line,
         "ctrl + x": controller.complete,
         "ctrl + w": controller.read_comp,
-        "ctrl + h": help_keys
+        "ctrl + r": controller.random
     }
-    for key, func in dic.items():
-        keyboard.add_hotkey(key, func)
-    keyboard.wait("esc")
+    add_hotkeys(dic)

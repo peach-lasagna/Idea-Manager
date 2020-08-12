@@ -1,28 +1,9 @@
-import json
-from typing import Callable, Iterator, Optional
+from typing import Dict, Callable, Iterator, Optional
 
 import click
 
+from idea_manager.tools import load_json, add_hotkeys, export_to_json
 from idea_manager.exceptions import NotFoundIdeaError
-
-
-def export_to_json(path: str, data: dict) -> None:
-    with open(path, "w", encoding="utf-8") as wri:
-        json.dump(data, wri, indent=2)
-
-
-def load_json(path: str) -> dict:
-    """Get json schema to format from file.
-
-    Args:
-        path(str): path to json.
-
-    Returns:
-        (dict): db.
-
-    """
-    with open(path, "r", encoding="utf-8") as file:
-        return json.load(file)
 
 
 class IdeaModel:
@@ -44,9 +25,10 @@ class IdeaModel:
         for key, val in self.schema.items():
             new_value = inp_func(f"{key}", val)
 
-            if type(val) != str:
-                new_value = eval(str(new_value))
-            self.schema[key] = new_value
+            if new_value:
+                if type(val) != str:
+                    new_value = eval(str(new_value))
+                self.schema[key] = new_value
         return self.schema
 
     def read_idea(self, name: str, data: Optional[dict] = None) -> Iterator[str]:
@@ -57,7 +39,7 @@ class IdeaModel:
             raise NotFoundIdeaError("No this idea in file!")
 
         for key, val in data[name].items():
-            yield f"{key}: {val}"
+            yield f"{key}:\t{val}"
 
     def list_idea(self, data: Optional[dict] = None) -> Iterator[str]:
         if data is None:
@@ -99,38 +81,71 @@ def try_exc(foo: Callable, exc=NotFoundIdeaError):
     return wrap
 
 
-class IdeaView:
-    def __init__(self, model: IdeaModel):
+class IdeaView(BasicView):
+    # def __init__(self, model: IdeaModel):
+    #     self.model = model
+
+    # @try_exc
+    # def read_idea(self, idea: str):
+    #     for st in self.model.read_idea(idea):
+    #         click.echo(st)
+
+    # @try_exc
+    # def list_idea(self):
+    #     for st in self.model.list_idea():
+    #         click.echo("[ ]\t" + st)
+
+    # def rem_idea(self, idea: str):
+    #     click.echo(self.model.rem_idea(idea))
+
+    # def comp_idea(self, idea: str) -> None:
+    #     click.echo(self.model.comp_idea(idea))
+
+    # @try_exc
+    # def read_comp_idea(self, idea: str):
+    #     for st in self.model.read_idea(idea, self.model.completed):
+    #         click.echo(st)
+
+    # @try_exc
+    # def comp_idea_list(self):
+    #     for st in self.model.list_idea(self.model.completed):
+    #         click.echo("[+] " + st)
+
+    # def new_idea(self, idea: str):
+    #     if idea in self.model.data and not click.confirm(
+    #             "This idea already in list. Rewrite?"):
+    #         return
+    #     self.model.write_idea(idea)
+
+
+class Controller:
+    def __init__(self, model: IdeaModel, view: IdeaView) -> None:
         self.model = model
+        self.view = view
 
-    @try_exc
-    def read_idea(self, idea: str):
-        for st in self.model.read_idea(idea):
-            click.echo(st)
+    def show(self):
+        pass
 
-    @try_exc
-    def list_idea(self):
-        for st in self.model.list_idea():
-            click.echo("[ ] " + st)
+    def new(self):
+        pass
 
-    def rem_idea(self, idea: str):
-        click.echo(self.model.rem_idea(idea))
+    def count():
+        pass
 
-    def comp_idea(self, idea: str) -> None:
-        click.echo(self.model.comp_idea(idea))
 
-    @try_exc
-    def read_comp_idea(self, idea: str):
-        for st in self.model.read_idea(idea, self.model.completed):
-            click.echo(st)
+def main(data_json_path: str, schema_json_path: str, completed_json_path: str):
+    model = IdeaModel(data_json_path, schema_json_path, completed_json_path)
+    controller = Controller(model, IdeaView())
 
-    @try_exc
-    def comp_idea_list(self):
-        for st in self.model.list_idea(self.model.completed):
-            click.echo("[+] " + st)
-
-    def new_idea(self, idea: str):
-        if idea in self.model.data and not click.confirm(
-                "This idea already in list. Rewrite?"):
-            return
-        self.model.write_idea(idea)
+    Controller.show(controller)
+    dic: Dict[str, Callable] = {
+        "ctrl + s": lambda: Controller.show(controller),
+        "ctrl + n": controller.new,
+        "ctrl + b": controller.count,
+        "ctrl + d": controller.delete,
+        "ctrl + g": controller.go_to_line,
+        "ctrl + x": controller.complete,
+        "ctrl + w": controller.read_comp,
+        "ctrl + r": controller.random
+    }
+    add_hotkeys(dic)
