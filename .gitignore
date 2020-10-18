@@ -141,3 +141,4 @@ cython_debug/
 .vscode/
 .idea/
 poetry.lock
+f.py

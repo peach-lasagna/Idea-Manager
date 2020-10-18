@@ -1,5 +1,4 @@
 import click
-
 from idea_manager import idea_main, todo_main
 
 schema_json_path = "./db/idea_schema.json"
